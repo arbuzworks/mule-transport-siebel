@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:test="http://www.mulesoft.org/schema/mule/test"
+      xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel"
+      xsi:schemaLocation="
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/3.1/mule-test.xsd
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.1/mule.xsd
+       http://www.mulesoft.org/schema/mule/siebel  META-INF/mule-siebel.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.1/mule-vm.xsd">
+
+    <context:property-placeholder location="test.properties"/>
+
+    <siebel:polling-connector name="siebelConnector" host="${host}" port="${port}"
+                      user="${user}" password="${password}" path="${url_path}" pollingFrequency="10000" />
+
+    <vm:connector name="vm"/>
+
+	<flow name="Siebel polling test model">
+		<siebel:inbound-endpoint name="polledSiebelEndpoint"
+			address="siebel://${service}/${method}?param0=Please&amp;param1=echo&amp;param2=me"
+			exchange-pattern="request-response" />
+		<outbound-endpoint address="vm://toclient" exchange-pattern="one-way" />
+	</flow>
+	
+	<flow name="encodedStringFlow">
+		<siebel:inbound-endpoint exchange-pattern="request-response"
+			address="siebel://${service}/${method}?param0=1"/>
+		<siebel:propset-to-encoded-string-transformer/>
+		<outbound-endpoint address="vm://encodedString" exchange-pattern="one-way" />
+	</flow>
+
+	<flow name="localXmlFlow">
+		<siebel:inbound-endpoint exchange-pattern="request-response"
+			address="siebel://${service}/${method}?param0=2"/>
+		<siebel:propset-to-xml-string-transformer/>
+		<outbound-endpoint address="vm://localXml" exchange-pattern="one-way" />
+	</flow>
+
+	<flow name="remoteXmlFlow">
+		<siebel:inbound-endpoint exchange-pattern="request-response"
+			address="siebel://${service}/${method}?param0=3"/>
+		<siebel:propset-to-xml-string-remote-transformer siebel-connector-ref="siebelConnector"/>
+		<outbound-endpoint address="vm://remoteXml" exchange-pattern="one-way" />
+	</flow>
+	
+</mule>

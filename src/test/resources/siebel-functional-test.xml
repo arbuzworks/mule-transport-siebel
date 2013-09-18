@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+       xmlns:siebel="http://www.mulesoft.org/schema/mule/siebel"
+       xmlns:spring="http://www.springframework.org/schema/beans"
+    xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.1/mule.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.1/mule-vm.xsd
+       http://www.mulesoft.org/schema/mule/siebel http://www.mulesoft.org/schema/mule/siebel/3.1/mule-siebel.xsd">
+
+    <context:property-placeholder location="test.properties"/>
+
+    <siebel:connector name="siebelConnector" host="${host}" port="${port}"
+                      user="${user}" password="${password}" path="${url_path}" />
+	
+    <flow name="echoFlow">
+        <vm:inbound-endpoint path="echo" exchange-pattern="request-response"/>
+         <siebel:outbound-endpoint exchange-pattern="request-response" 
+         	address="siebel://Workflow Utilities/Echo"/>
+    </flow>
+
+	<flow name="encodedStringFlow">
+		<vm:inbound-endpoint path="encodedString" exchange-pattern="request-response" />
+		<siebel:encoded-string-to-propset-transformer/>
+		<siebel:outbound-endpoint exchange-pattern="request-response"
+			address="siebel://Workflow Utilities/Echo"/>
+	</flow>
+	
+	<flow name="localXmlFlow">
+		<vm:inbound-endpoint path="localXml" exchange-pattern="request-response" />
+		<siebel:xml-string-to-propset-transformer/>
+		<siebel:outbound-endpoint exchange-pattern="request-response"
+			address="siebel://Workflow Utilities/Echo"/>
+	</flow>
+	
+	<flow name="remoteXmlFlow">
+		<vm:inbound-endpoint path="remoteXml" exchange-pattern="request-response" />
+		<siebel:xml-string-to-propset-remote-transformer siebel-connector-ref="siebelConnector"/>
+		<siebel:outbound-endpoint exchange-pattern="request-response"
+			address="siebel://Workflow Utilities/Echo"/>
+	</flow>
+	         
+</mule>
